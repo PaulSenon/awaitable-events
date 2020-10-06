@@ -1,7 +1,7 @@
 {
   "name": "awaitable-events",
   "version": "1.0.0",
-  "description": "Dependency free event manager that you can await on in order to manage complex async conditions checkpoint without creating adherence between communicating scripts. It can be use a bit like Mutex in your code because it will stop on the awaited line until the corresponding trigger is fired",
+  "description": "Dependency free event manager that you can await on in order to manage complex async conditions checkpoint without creating adherence between communicating scripts. It can be use a bit like mutex in your code because it will stop on the awaited line until the corresponding trigger is fired",
   "main": "index.js",
   "repository": "tmp",
   "author": "Paul SENON",
