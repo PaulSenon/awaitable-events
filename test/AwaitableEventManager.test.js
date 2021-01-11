@@ -6,9 +6,9 @@ describe('test AwaitableEventManager', () => {
         let flag = false;
 
         const asyncTest = aem.on('testEvent').then((data) => {
-        expect(data).toBe('testData');
-        expect(flag).toBe(true);
-        })
+            expect(data).toBe('testData');
+            expect(flag).toBe(true);
+        });
 
         // expect observer to have been referenced
         const observableRef = aem._getObservable('testEvent');
@@ -46,8 +46,8 @@ describe('test AwaitableEventManager', () => {
         expect(observableRef._observers.length).toBe(0);
 
         const asyncTest = aem.on('testEvent').then(() => {
-        nbTrigger++;
-        expect(nbTrigger).toBe(1);
+            nbTrigger++;
+            expect(nbTrigger).toBe(1);
         })
 
         // expect observer to have been already unreferenced
@@ -57,6 +57,67 @@ describe('test AwaitableEventManager', () => {
         aem.fire('testEvent');
 
         return asyncTest;
+    });
+    it('should call trigger with the last data', async () => {
+        const aem = new AwaitableEventManager();
+        let nbTrigger = 0;
+
+        aem.fire('testEvent', 'a');
+        aem.fire('testEvent', 'b');
+
+        // expect observer to not have been referenced yet
+        const observableRef = aem._getObservable('testEvent');
+        expect(observableRef._observers.length).toBe(0);
+
+        const asyncTest = aem.on('testEvent').then((data) => {
+            nbTrigger++;
+            expect(nbTrigger).toBe(1);
+            return data;
+        })
+
+        // expect observer to have been already unreferenced
+        expect(observableRef._observers.length).toBe(0);
+
+        aem.fire('testEvent', 'c');
+        aem.fire('testEvent', 'd');
+
+        const asyncTest2 = aem.on('testEvent').then((data) => {
+            nbTrigger++;
+            expect(nbTrigger).toBe(2);
+            return data;
+        })
+
+        // expect observer to have been already unreferenced
+        expect(observableRef._observers.length).toBe(0);
+
+        await expect(Promise.all([asyncTest, asyncTest2])).resolves.toStrictEqual(['b', 'd']);
+    });
+    it('should trigger multiple awaiters of the same event', async () => {
+        const aem = new AwaitableEventManager();
+        let nbTrigger = 0;
+
+        const asyncTest = aem.on('testEvent').then((data) => {
+            nbTrigger++;
+            expect(nbTrigger).toBe(1);
+            return data;
+        })
+
+        const asyncTest2 = aem.on('testEvent').then((data) => {
+            nbTrigger++;
+            expect(nbTrigger).toBe(2);
+            return data;
+        })
+
+        // expect observer to have been already unreferenced
+        const observableRef = aem._getObservable('testEvent');
+        expect(observableRef._observers.length).toBe(2);
+
+        aem.fire('testEvent', 'a');
+        aem.fire('testEvent', 'b');
+
+        expect(observableRef._observers.length).toBe(0);
+
+        await expect(Promise.all([asyncTest, asyncTest2])).resolves.toStrictEqual(['a', 'a']);
     });
     it('should not be triggered by other event', async () => {
         const aem = new AwaitableEventManager();

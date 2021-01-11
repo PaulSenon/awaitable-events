@@ -4,17 +4,29 @@ class AwaitableEventManager {
     constructor() {
         this._observables = [];
     }
-  
+
     on(eventName){
         return new Promise((resolve, reject) => {
             const observer = new Observer(data => {
-            resolve(data);
-            observer.unsubscribe();
+                resolve(data);
+                observer.unsubscribe();
             });
     
             let observable = this._getOrCreateObservable(eventName);
             observable.subscribe(observer);
         });
+    }
+
+    proxifyEventListener(domPart, eventName, forceCallIfCbTrue){
+        if(forceCallIfCbTrue()){
+            this.fire(eventName, data);
+        } else {
+            domPart.addEventListener(eventName, data => this.fire(eventName, data));
+        }
+    }
+
+    clear(eventName){
+        let observable = this._getObservable(eventName);
     }
   
     fire(eventName, data) {
